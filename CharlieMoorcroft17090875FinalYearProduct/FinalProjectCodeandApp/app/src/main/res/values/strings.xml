@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">SmartHomeControlApp</string>
+    <string name="show_text">Show Text</string>
+    <color name="black">#000000</color>
+</resources>

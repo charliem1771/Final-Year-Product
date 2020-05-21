@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="FinalProjectCodeandApp/app/build/generated/not_namespaced_r_class_sources/debug/r"/>
+	<classpathentry kind="src" path="FinalProjectCodeandApp/app/build/generated/source/buildConfig/androidTest/debug"/>
+	<classpathentry kind="src" path="FinalProjectCodeandApp/app/build/generated/source/buildConfig/debug"/>
+	<classpathentry kind="src" path="FinalProjectCodeandApp/app/src/androidTest/java"/>
+	<classpathentry kind="src" path="FinalProjectCodeandApp/app/src/main/java"/>
+	<classpathentry kind="src" path="FinalProjectCodeandApp/app/src/test/java"/>
+	<classpathentry kind="src" path="SmartHomeBackEnd/src"/>
+	<classpathentry kind="lib" path="FinalProjectCodeandApp/app/build/intermediates/merged_java_res/debug/out.jar"/>
+	<classpathentry kind="lib" path="FinalProjectCodeandApp/app/libs/org.eclipse.paho.client.mqttv3-1.1.1.jar"/>
+	<classpathentry kind="lib" path="FinalProjectCodeandApp/gradle/wrapper/gradle-wrapper.jar"/>
+	<classpathentry kind="lib" path="FinalProjectCodeandApp/gson-2.8.5/gson-2.8.5.jar"/>
+	<classpathentry kind="lib" path="gson-2.8.5.jar"/>
+	<classpathentry kind="lib" path="SmartHomeBackEnd/org.eclipse.paho.client.mqttv3-1.1.0.jar"/>
+	<classpathentry kind="lib" path="SmartHomeBackEnd/phidget22.jar"/>
+	<classpathentry kind="lib" path="SmartHomeBackEnd/WebContent/WEB-INF/lib/gson-2.8.5.jar"/>
+	<classpathentry kind="lib" path="SmartHomeBackEnd/WebContent/WEB-INF/lib/mysql.jar"/>
+	<classpathentry kind="output" path="FinalProjectCodeandApp/app/build/intermediates/javac/debug/classes"/>
+</classpath>
