@@ -18,6 +18,11 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 
 import android.widget.TextView;
@@ -55,10 +60,12 @@ public class MainActivity extends AppCompatActivity
     //Layout stuff
     public LinearLayout linearLayoutOne,linearLayoutTwo,linearLayoutThree;
     public Button newBtn;
+    public boolean checker;
+    Connection conn = null;
+    Statement stmt;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -73,67 +80,177 @@ public class MainActivity extends AppCompatActivity
         //Grabbing a text view
         TextView infoClick = findViewById(R.id.infoView);
         //Connecting to MQTT broker
-        try
-        {
-            mqttClient = new MqttClient(BROKER_URL,userId,null);
+        try {
+            mqttClient = new MqttClient(BROKER_URL, userId, null);
             mqttClient.connect();
-        }
-        catch (MqttException e)
-        {
+        } catch (MqttException e) {
             e.printStackTrace();
             System.exit(1);
         }
         //Calling the device Subscriber class
         rfid.start();
-        infoClick.setOnClickListener(new View.OnClickListener()
-        {
-            public void onClick(View v)
-            {
-                startActivityForResult(intentThree,1);
+        infoClick.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                startActivityForResult(intentThree, 1);
             }
         });
         //Creating two onclick listeners for our buttons, once clicked they will switch to the activity
         //Specified in the intents
-        buttonOne.setOnClickListener(new View.OnClickListener()
-        {
-            public void onClick(View v)
-            {
-                startActivityForResult(intentOne,1);
+        buttonOne.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                startActivityForResult(intentOne, 1);
             }
         });
 
-        buttonTwo.setOnClickListener(new View.OnClickListener()
-        {
-            public void onClick(View v)
-            {
-                Bundle data = new Bundle();
-                data.putStringArrayList("namesList",nameValue);
-                intentTwo.putExtras(data);
-                startActivityForResult(intentTwo,1);
+        check();
+        if (checker == true) {
+            try {
+                getAll();
+                System.out.println(nameValue);
+                buttonTwo.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        Bundle data = new Bundle();
+                        data.putStringArrayList("namesList", nameValue);
+                        intentTwo.putExtras(data);
+                        startActivityForResult(intentTwo, 1);
+                    }
+                });
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        });
-
-        //Checking if the preferences editor in array manager has any data
-        //It will only have data stored if the activity has been destroyed
-        if(arrayManager.editor != null)
+        }
+        else
         {
-            //Filling our second set of arrays with data,the methods are stored in the arrayManager class
-            nameValue2 = arrayManager.getArrayPrefs("names",contextGrabber.getContext());
-            roomValue2 = arrayManager.getArrayPrefs("rooms",contextGrabber.getContext());
-            numValue2 = arrayManager.getArrayInt("numbers",contextGrabber.getContext());
-            typeValue2 = arrayManager.getArrayPrefs("types",contextGrabber.getContext());
-            //Iterating through the nameValue2 arrayList till all of our buttons our recreated
+            System.out.println("No data!");
+        }
+    }
+
+    private void getDBConnection()
+    {
+        //Getting the right username and oassiwrd for the mudfoot server
+        String user = "moorcroc";
+        String password = "Exdrangl3";
+        //The mudfoot server where our SQL table is stored
+        String url = "jdbc:mysql://mudfoot.doc.stu.mmu.ac.uk:6306/"+user;
+        // Load the database driver
+        try
+        {
+            Class.forName("com.mysql.jdbc.Driver").newInstance();
+        }
+        catch (Exception e)
+        {
+            System.out.println(e);
+        }
+        // get a connection with the user/pass
+        try
+        {
+            //Setting the connection object to match the password user and correct URL
+            conn = DriverManager.getConnection(url, user, password);
+            //Creating a statement object for database queries
+            stmt = conn.createStatement();
+            System.out.println("We have created our db connection");
+        }
+        catch (SQLException se)
+        {
+            System.out.println(se);
+            System.out.println("\nDid you alter the lines to set user/password in the server code?");
+        }
+    }
+
+    //Method to close the connection to the mudfoot server
+    private void closeConnection()
+    {
+        try
+        {
+            conn.close();
+        }
+        catch (Exception e)
+        {
+            System.out.println(e);
+        }
+    }
+
+    public boolean check()
+    {
+        ResultSet rs;
+        String query = "SELECT * FROM smart_devices;";
+        try {
+            getDBConnection();
+            System.out.println(query);
+            //execute the sql query
+            rs = stmt.executeQuery(query);
+            if(rs != null)
+            {
+                checker = true;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        catch (SQLException e)
+        {
+            // TODO: handle exception
+            System.out.println(e.getMessage());
+        }
+        return false;
+    }
+    public ArrayList<String> getAll() throws SQLException
+    {
+        ResultSet rs = null;
+        //Getting all the data from smartdevices table where the serialNumber matches the input
+        String query = "SELECT * FROM smart_devices;";
+        deviceData dataObj = new deviceData(null,null,0, null);
+        try
+        {
+            getDBConnection();
+            System.out.println(query);
+            //execute the sql query
+            rs = stmt.executeQuery(query);
+            //using a while loop to get all of the required values
+            while(rs.next())
+            {
+                dataObj.setDeviceName(rs.getString("deviceName"));
+                dataObj.setDeviceRoom(rs.getString("deviceRoom"));
+                dataObj.setDeviceType(rs.getString("deviceType"));
+                //Setting the correct parameter of dataObj to contain the serial number from the resultset
+                dataObj.setDeviceSerialNumber(rs.getInt("deviceSerialNumber"));
+                String dataOne = dataObj.getDeviceName();
+                String dataTwo = dataObj.getDeviceRoom();
+                String dataThree = dataObj.getDeviceType();
+                int dataFour = dataObj.getDeviceSerialNumber();
+                System.out.println("The Name data: " + nameValue2);
+               // nameValue.add(dataOne);
+                nameValue2.add(dataOne);
+                roomValue2.add(dataTwo);
+                typeValue2.add(dataThree);
+                numValue2.add(dataFour);
+                System.out.println("The values post adding" + nameValue2 + roomValue2 + typeValue2 + numValue2);
+            }
+
             for(int i = 0; i < nameValue2.size(); i++)
             {
                 generateButton(nameValue2.get(i),roomValue2.get(i),numValue2.get(i),typeValue2.get(i));
                 System.out.println("Redrawing buttons");
             }
         }
-        else {
-            System.out.println("We have no stored data");
+        catch (SQLException e)
+        {
+            // TODO: handle exception
+            System.out.println(e.getMessage());
         }
+        finally
+        {
+            //end connection
+            if(rs != null)
+            {
+                rs.close();
+            }
+            closeConnection();
+        }
+        return null;
     }
-
     //Used to pass data for the dynamic UI between classes
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
@@ -154,31 +271,49 @@ public class MainActivity extends AppCompatActivity
             //An RFID reader
             if (messageReturn.contains("true") && !dataType.contains("rfid"))
             {
+                System.out.println("Are we calling this?");
                 //Generate the button
                 generateButton(dataName, dataRoom, dataNumber, dataType);
                 Toast.makeText(contextGrabber.getContext(), "An " + dataType + " called " + dataName + " has been created", Toast.LENGTH_SHORT).show();
             }
             else
             {
-                //Toast to tell us we have create a RFID device
+                //Toast to tell us we have created a RFID device
                 Toast.makeText(contextGrabber.getContext(), "An RFID by the name of " + dataName + " has been created", Toast.LENGTH_SHORT).show();
             }
         }
         //Checking if result code is true
         else if(resultCode == 2)
         {
+            System.out.println("Result is 2");
             //The below code is non functional
             //It is as attempt to remove the Button from the dynamic UI
             String toDelete = data.getStringExtra("deleteItem");
-            for(int i = 0; i < nameValue.size(); i++) {
+            int theValue = data.getIntExtra("thePos",0);
+
                 System.out.println("We deleting: " + nameValue.size());
-                String buttonText = newBtn.getText().toString();
-                if (buttonText == toDelete) {
-                    linearLayoutOne.removeView(newBtn);
+                String buttonText = nameValue.get(theValue);
+                System.out.println(buttonText + " " + toDelete);
+                if (buttonText.equals(toDelete)) {
+                   // System.out.println("Succesful?");
+                    nameValue.clear();
+                    nameValue2.clear();
+                    roomValue2.clear();
+                    typeValue2.clear();
+                    numValue2.clear();
+                    linearLayoutOne.removeAllViewsInLayout();
+                    linearLayoutTwo.removeAllViewsInLayout();
+                    linearLayoutThree.removeAllViewsInLayout();
+                    try {
+                        getAll();
+                        System.out.println("Succesful?");
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                    //arrayManager.removeArrayPrefs("names",nameValue,contextGrabber.getContext());
                 }
-            }
-            nameValue.remove(toDelete);
-            nameValue2.remove(toDelete);
+
+
         }
     }
     //The generateButton class
@@ -190,10 +325,10 @@ public class MainActivity extends AppCompatActivity
         numValue.add(numVal);
         typeValue.add(typeVal);
         //Using the arrayManager class to fill our new arrayLists with data
-        arrayManager.setArrayPrefs("names",nameValue,contextGrabber.getContext());
+        /*arrayManager.setArrayPrefs("names",nameValue,contextGrabber.getContext());
         arrayManager.setArrayPrefs("rooms",roomValue,contextGrabber.getContext());
         arrayManager.setArrayInt("numbers",numValue,contextGrabber.getContext());
-        arrayManager.setArrayPrefs("types",typeValue,contextGrabber.getContext());
+        arrayManager.setArrayPrefs("types",typeValue,contextGrabber.getContext());*/
         //Creating a onClickListener
         View.OnClickListener btnclick = new View.OnClickListener()
         {

@@ -1,2 +1,4 @@
-include ':app', ':gson-2.8.5'
+include ':app'
+include ':mysql-connector-java-8.0.20'
+include ':gson-2.8.5'
 rootProject.name='SmartHomeControlApp'

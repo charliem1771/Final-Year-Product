@@ -26,7 +26,7 @@ public class deviceDAO extends HttpServlet
 		System.out.println("Up and running!");
 	}
 	//A method to get the databases connection
-	private void  getDBConnection() 
+	private void getDBConnection() 
 	{
 		//Getting the right username and oassiwrd for the mudfoot server
 		String user = "moorcroc";

@@ -21,7 +21,7 @@ public class deviceData
 		return deviceType;
 	}
 
-	public void setDeviceType()
+	public void setDeviceType(String deviceType)
 	{
 		this.deviceType = deviceType;
 	}

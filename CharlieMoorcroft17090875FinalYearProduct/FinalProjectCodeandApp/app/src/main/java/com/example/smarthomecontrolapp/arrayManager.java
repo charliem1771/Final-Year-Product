@@ -73,4 +73,20 @@ public class arrayManager
         }
         return array;
     }
+
+    public static void removeArrayPrefs(String arrayName, ArrayList<String> array, Context mContext)
+    {
+        //Setting the prefs object to equal a blank context
+        prefs = mContext.getSharedPreferences("preferencename", 0);
+        //Setting the editor to equal the prefs
+        editor = prefs.edit();
+        //Storing the arrays size
+        editor.putInt(arrayName +"_size", array.size());
+        //Iterating through the array and adding the string data
+        for(int i = 0; i < array.size(); i++)
+        {
+            editor.remove(arrayName + "_" + 0);
+        }
+        editor.apply();
+    }
 }

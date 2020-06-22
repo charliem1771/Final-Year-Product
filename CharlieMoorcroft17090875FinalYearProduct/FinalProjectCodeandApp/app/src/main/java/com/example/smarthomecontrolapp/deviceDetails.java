@@ -42,22 +42,20 @@ public class deviceDetails extends AppCompatActivity
         {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //Removes the clicked object from the listView
-                //nameValue.remove(position);
                 try
                 {
                     //Creating a intent
                     Intent openMainActivity = new Intent(deviceDetails.this, MainActivity.class);
                     //Placing the name of the Device in a string
                     String deleteJson = nameValue.get(position);
+                    System.out.println("The name: " + deleteJson);
                     //Sending it to the server
                     sendData.sendToServer(deleteJson, "deleteData");
                     //Placing the deleteJson object into a intent
                     openMainActivity.putExtra("deleteItem", deleteJson);
+                    openMainActivity.putExtra("thePos", position);
                     //Using setresult to activate the onActivityResult method in MainActivity
                     setResult(2, openMainActivity);
-                    //Updates array adapter
-                    //arrayAdapter.notifyDataSetChanged();
                     //Calls the MainActivity triggering onActivity result
                     finish();
                 }
