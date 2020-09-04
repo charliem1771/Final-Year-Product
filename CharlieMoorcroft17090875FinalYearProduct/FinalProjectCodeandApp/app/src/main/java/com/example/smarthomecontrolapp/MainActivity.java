@@ -61,8 +61,7 @@ public class MainActivity extends AppCompatActivity
     public LinearLayout linearLayoutOne,linearLayoutTwo,linearLayoutThree;
     public Button newBtn;
     public boolean checker;
-    Connection conn = null;
-    Statement stmt;
+    public androidDAO controlDao = new androidDAO();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,10 +101,15 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        check();
+        controlDao.getDBConnection();
+        controlDao.check();
+        Intent values =  new Intent();
+        checker = controlDao.theValue;
+        System.out.println("Is it true: " + checker);
+
         if (checker == true) {
             try {
-                getAll();
+                controlDao.getAll();
                 System.out.println(nameValue);
                 buttonTwo.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
@@ -118,6 +122,18 @@ public class MainActivity extends AppCompatActivity
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+            nameValue = controlDao.nameValue;
+            nameValue2 = controlDao.nameValue;
+            roomValue2 = controlDao.roomValue;
+            typeValue2 = controlDao.typeValue;
+            numValue2 = controlDao.numValue;
+           // System.out.println("We reaching here:" + nameValue2.size() + " " + roomValue2.size() + " " + typeValue2.size() + " " + numValue2.size());
+            System.out.println("data : " + nameValue2);
+            for (int i = 0; i <= nameValue2.size(); i ++)
+            {
+                System.out.println(i);
+                generateButton(nameValue2.get(i),roomValue2.get(i),numValue2.get(i),typeValue2.get(i));
+            }
         }
         else
         {
@@ -125,132 +141,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void getDBConnection()
-    {
-        //Getting the right username and oassiwrd for the mudfoot server
-        String user = "moorcroc";
-        String password = "Exdrangl3";
-        //The mudfoot server where our SQL table is stored
-        String url = "jdbc:mysql://mudfoot.doc.stu.mmu.ac.uk:6306/"+user;
-        // Load the database driver
-        try
-        {
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-        }
-        catch (Exception e)
-        {
-            System.out.println(e);
-        }
-        // get a connection with the user/pass
-        try
-        {
-            //Setting the connection object to match the password user and correct URL
-            conn = DriverManager.getConnection(url, user, password);
-            //Creating a statement object for database queries
-            stmt = conn.createStatement();
-            System.out.println("We have created our db connection");
-        }
-        catch (SQLException se)
-        {
-            System.out.println(se);
-            System.out.println("\nDid you alter the lines to set user/password in the server code?");
-        }
-    }
-
-    //Method to close the connection to the mudfoot server
-    private void closeConnection()
-    {
-        try
-        {
-            conn.close();
-        }
-        catch (Exception e)
-        {
-            System.out.println(e);
-        }
-    }
-
-    public boolean check()
-    {
-        ResultSet rs;
-        String query = "SELECT * FROM smart_devices;";
-        try {
-            getDBConnection();
-            System.out.println(query);
-            //execute the sql query
-            rs = stmt.executeQuery(query);
-            if(rs != null)
-            {
-                checker = true;
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        catch (SQLException e)
-        {
-            // TODO: handle exception
-            System.out.println(e.getMessage());
-        }
-        return false;
-    }
-    public ArrayList<String> getAll() throws SQLException
-    {
-        ResultSet rs = null;
-        //Getting all the data from smartdevices table where the serialNumber matches the input
-        String query = "SELECT * FROM smart_devices;";
-        deviceData dataObj = new deviceData(null,null,0, null);
-        try
-        {
-            getDBConnection();
-            System.out.println(query);
-            //execute the sql query
-            rs = stmt.executeQuery(query);
-            //using a while loop to get all of the required values
-            while(rs.next())
-            {
-                dataObj.setDeviceName(rs.getString("deviceName"));
-                dataObj.setDeviceRoom(rs.getString("deviceRoom"));
-                dataObj.setDeviceType(rs.getString("deviceType"));
-                //Setting the correct parameter of dataObj to contain the serial number from the resultset
-                dataObj.setDeviceSerialNumber(rs.getInt("deviceSerialNumber"));
-                String dataOne = dataObj.getDeviceName();
-                String dataTwo = dataObj.getDeviceRoom();
-                String dataThree = dataObj.getDeviceType();
-                int dataFour = dataObj.getDeviceSerialNumber();
-                System.out.println("The Name data: " + nameValue2);
-               // nameValue.add(dataOne);
-                nameValue2.add(dataOne);
-                roomValue2.add(dataTwo);
-                typeValue2.add(dataThree);
-                numValue2.add(dataFour);
-                System.out.println("The values post adding" + nameValue2 + roomValue2 + typeValue2 + numValue2);
-            }
-
-            for(int i = 0; i < nameValue2.size(); i++)
-            {
-                generateButton(nameValue2.get(i),roomValue2.get(i),numValue2.get(i),typeValue2.get(i));
-                System.out.println("Redrawing buttons");
-            }
-        }
-        catch (SQLException e)
-        {
-            // TODO: handle exception
-            System.out.println(e.getMessage());
-        }
-        finally
-        {
-            //end connection
-            if(rs != null)
-            {
-                rs.close();
-            }
-            closeConnection();
-        }
-        return null;
-    }
     //Used to pass data for the dynamic UI between classes
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
@@ -305,7 +195,7 @@ public class MainActivity extends AppCompatActivity
                     linearLayoutTwo.removeAllViewsInLayout();
                     linearLayoutThree.removeAllViewsInLayout();
                     try {
-                        getAll();
+                        controlDao.getAll();
                         System.out.println("Succesful?");
                     } catch (SQLException e) {
                         e.printStackTrace();
@@ -316,8 +206,9 @@ public class MainActivity extends AppCompatActivity
 
         }
     }
+
     //The generateButton class
-    public String generateButton(String nameVal, final String roomVal, final int numVal,String typeVal)
+    public String generateButton(String nameVal, String roomVal, int numVal,String typeVal)
     {
         //Placing the data we need in arrayLists
         nameValue.add(nameVal);
